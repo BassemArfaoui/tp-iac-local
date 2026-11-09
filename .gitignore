@@ -1,0 +1,13 @@
+# Dossier local des providers Terraform
+.terraform/
+steps.txt
+# Fichiers d'état (contiennent des secrets, ne jamais commiter)
+*.tfstate
+*.tfstate.*
+crash.log
+
+# Fichiers de variables locales
+*.tfvars
+*.tfvars.json
+
+# NB : .terraform.lock.hcl DOIT être commité (versions figées des providers)

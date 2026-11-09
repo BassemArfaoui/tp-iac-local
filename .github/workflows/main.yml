@@ -1,0 +1,45 @@
+name: Terraform IaC Pipeline
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    env:
+      # Sur le runner Linux, Docker écoute sur le socket unix (pas npipe)
+      TF_VAR_docker_host: unix:///var/run/docker.sock
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      # Étape 1 : Setup (Préparation)
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.17.0"
+
+      # Étape 2 : Init (Initialisation de l'état)
+      - name: Terraform Init
+        run: terraform init -input=false
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      # Étape 3 : Plan (Validation & Revue)
+      - name: Terraform Plan
+        run: terraform plan -input=false -out=tfplan
+
+      # Étape 4 : Apply (Déploiement Continu)
+      # Ne s'exécute que si toutes les étapes précédentes ont réussi
+      - name: Terraform Apply
+        if: success()
+        run: terraform apply -auto-approve -input=false tfplan
+
+      - name: Vérification de l'application
+        run: |
+          sleep 5
+          curl -sSf http://localhost:8080/ | grep "Application Deployed via Terraform IaC"
+          docker ps
